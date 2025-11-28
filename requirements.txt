@@ -1,0 +1,5 @@
+yolox
+opencv-python
+torch
+numpy
+loguru

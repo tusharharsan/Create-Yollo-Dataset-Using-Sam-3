@@ -1,0 +1,48 @@
+# Implementation Plan - Jetson Nano Optimization
+
+## Goal
+Optimize the YOLOX object detection model for high precision and recall on the NVIDIA Jetson Nano, specifically targeting "Sack" and "Person" classes.
+
+## Current Status Analysis
+*   **Model**: YOLOX-Nano (Too lightweight for high precision).
+*   **Resolution**: 416x416 (Misses small details/objects).
+*   **Batch Size**: 1 (Causes unstable training and poor generalization).
+*   **Performance**: ~77% mAP (Sack: 87%, Person: 67%). "Person" class is underperforming.
+
+## Proposed Changes
+
+### 1. Model Architecture Upgrade
+*   **Change**: Switch from **YOLOX-Nano** to **YOLOX-Tiny**.
+*   **Reasoning**: YOLOX-Tiny offers a significant accuracy boost over Nano with only a small increase in computation. It is the "sweet spot" for the Jetson Nano, capable of running at real-time framerates (15-30 FPS) when optimized with TensorRT, unlike YOLOX-S which might be too heavy (~10 FPS).
+
+### 2. Input Resolution Increase
+*   **Change**: Increase input size from `416x416` to `640x640`.
+*   **Reasoning**: Higher resolution allows the model to see more features, drastically improving the recall for the "Person" class, especially when people are further away or partially occluded.
+
+### 3. Training Configuration Overhaul
+*   **Batch Size**: Increase to **8** (or 16 if VRAM allows).
+    *   *Why*: Batch Normalization layers require a batch size > 1 to work correctly. A batch size of 1 results in noisy gradients and poor convergence.
+*   **Learning Rate**: Adjust base learning rate to `0.01 / 64 * batch_size`.
+*   **Epochs**: Set to **300** (standard for YOLOX) with a 5-epoch warmup.
+*   **Augmentation**: Keep Mosaic and Mixup enabled.
+
+### 4. Deployment Strategy (Jetson Nano)
+*   **Format**: Export trained model to **ONNX**.
+*   **Optimization**: Convert ONNX to **TensorRT Engine (.trt)** on the Jetson Nano.
+    *   *Why*: TensorRT provides a 3x-5x speedup on Jetson hardware compared to raw PyTorch.
+*   **Precision**: Use **FP16** (Half Precision) for the TensorRT engine.
+    *   *Why*: The Jetson Nano's GPU supports FP16 natively, doubling performance with negligible accuracy loss.
+
+## Step-by-Step Execution Plan
+
+1.  **Create Config File**: Write `yolox_tiny_jetson.py` with the new settings.
+2.  **Verify Data**: Ensure dataset path is correct in the new config.
+3.  **Start Training**: Run the training command with the new config.
+4.  **Export**: Create a script to export the trained model to ONNX.
+5.  **Inference Code**: Update `inference.py` to support the new resolution and model type.
+
+## User Review Required
+> [!IMPORTANT]
+> **GPU Memory**: Increasing batch size requires more VRAM. If you are training on a local PC with < 4GB VRAM, we might need to stick to Batch Size 4 or 8.
+>
+> **Training Time**: Training YOLOX-Tiny at 640x640 will take longer than Nano at 416x416.

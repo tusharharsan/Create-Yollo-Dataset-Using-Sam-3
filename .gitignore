@@ -1,0 +1,44 @@
+# Virtual Environment
+.venv/
+venv/
+env/
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Datasets (Large files)
+datasets/
+dataset_raw/
+dataset_roboflow/
+dataset_roboflow_2/
+dataset_output.zip
+finale_dataset.zip
+
+# Models
+*.pt
+*.pth
+*.onnx
+sam3_repo/
+
+# YOLOX
+YOLOX/
+yolox_output/
+
+# Videos
+*.mp4
+*.avi
+*.mov
+
+# Streamlit
+.streamlit/
+streamlit_temp/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/

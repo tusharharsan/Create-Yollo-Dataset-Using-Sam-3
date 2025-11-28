@@ -1,0 +1,9 @@
+opencv-python
+tqdm
+numpy
+torch
+# SAM-3 installation
+# pip install git+https://github.com/facebookresearch/sam3.git
+# For detection (optional):
+# pip install ultralytics
+https://github.com/facebookresearch/sam3
